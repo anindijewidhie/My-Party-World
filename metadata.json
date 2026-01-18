@@ -1,0 +1,8 @@
+{
+  "name": "My Party World",
+  "description": "A high-energy party hosting simulation with a Cartoon Network aesthetic, featuring deep customization and a simulated earning system.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
