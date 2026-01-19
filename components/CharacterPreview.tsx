@@ -1,133 +1,181 @@
 import React from 'react';
-import { Character } from '../types';
-import { BODY_TYPES, AGE_RANGES } from '../constants';
+import { Character, AppearanceSlot } from '../types';
+import { BODY_TYPES, AGE_RANGES, MATERIALS, TEXTURES } from '../constants';
 
-export const CharacterPreview: React.FC<{ character: Character; scale?: number }> = ({ character, scale = 1 }) => {
-  const bodyConfig = BODY_TYPES.find(b => b.id === character.bodyType) || BODY_TYPES[0];
-  const ageConfig = AGE_RANGES.find(a => a.id === character.ageRange) || AGE_RANGES[2]; // Default to Teenager
-  
-  const finalScale = scale * ageConfig.multiplier;
+const SlotRenderer: React.FC<{ 
+  slot: AppearanceSlot; 
+  className?: string; 
+  style?: React.CSSProperties; 
+  children?: React.ReactNode 
+}> = ({ slot, className = '', style = {}, children }) => {
+  const material = MATERIALS.find(m => m.id === slot.material) || MATERIALS[0];
+  const texture = TEXTURES.find(t => t.id === slot.texture) || TEXTURES[0];
+
+  const combinedStyle: React.CSSProperties = {
+    ...style,
+    backgroundColor: slot.color,
+    backgroundImage: texture.pattern !== 'none' ? texture.pattern : undefined,
+    backgroundSize: texture.size,
+  };
 
   return (
     <div 
-      className="relative flex flex-col items-center justify-center animate-bounce-subtle"
-      style={{ transform: `scale(${finalScale})`, transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
+      className={`${className} ${material.css} relative overflow-hidden transition-all duration-300`} 
+      style={combinedStyle}
     >
-      {/* Cartoon Shadow */}
-      <div className="absolute -bottom-4 w-24 h-6 bg-black/20 rounded-full blur-[2px]" />
+      {/* Signature 2000s 'Ink-Splat' depth shadow */}
+      <div className="absolute inset-0 pointer-events-none shadow-[inset_-8px_-8px_0px_rgba(0,0,0,0.15)]" />
+      {children}
+    </div>
+  );
+};
 
-      {/* Back Accessories */}
-      {character.accessory === 'wings' && (
-        <div className="absolute -z-10 flex gap-12">
-          <div className="w-20 h-32 bg-white/90 border-[6px] border-black rounded-full -rotate-12" />
-          <div className="w-20 h-32 bg-white/90 border-[6px] border-black rounded-full rotate-12" />
+export const CharacterPreview: React.FC<{ character: Character; scale?: number }> = ({ character, scale = 1 }) => {
+  const bodyConfig = BODY_TYPES.find(b => b.id === character.bodyType) || BODY_TYPES[0];
+  const ageConfig = AGE_RANGES.find(a => a.id === character.ageRange) || AGE_RANGES[2];
+  
+  const finalScale = scale * ageConfig.multiplier;
+  const hairVol = character.hairVolume || 1.0;
+
+  // Aesthetic constants: Extra Bold black ink lines (Typical 2000s CN)
+  const BOLD_LINE = "border-[8px] border-black";
+  const MEDIUM_LINE = "border-[6px] border-black";
+
+  // Geometric torso adjustments based on body type
+  const getTorsoRadius = (id: string) => {
+    switch(id) {
+      case 'standard': return 'rounded-[2rem]';
+      case 'round': return 'rounded-[3rem]';
+      case 'boxy': return 'rounded-md';
+      case 'bean': return 'rounded-[4rem]';
+      case 'triangle': return 'rounded-t-[5rem] rounded-b-xl';
+      case 'teardrop': return 'rounded-b-[5rem] rounded-t-xl';
+      default: return 'rounded-3xl';
+    }
+  };
+
+  return (
+    <div 
+      className="relative flex flex-col items-center justify-center"
+      style={{ 
+        transform: `scale(${finalScale})`, 
+        transition: 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        filter: 'drop-shadow(0 25px 20px rgba(0,0,0,0.2))'
+      }}
+    >
+      {/* 2D Flat Shadow - Classic Retro Look */}
+      <div className="absolute -bottom-12 w-48 h-5 bg-black/20 rounded-[100%] blur-[2px]" />
+
+      {/* Accessories / Back Layer */}
+      {character.accessory.id !== 'none' && (
+        <div className="absolute -z-20 top-28">
+          {character.accessory.id === 'wings' ? (
+            <div className="flex gap-28">
+              <SlotRenderer slot={character.accessory} className={`w-36 h-72 ${BOLD_LINE} rounded-[100%_15%_100%_15%] -rotate-[35deg]`} />
+              <SlotRenderer slot={character.accessory} className={`w-36 h-72 ${BOLD_LINE} rounded-[15%_100%_15%_100%] rotate-[35deg]`} />
+            </div>
+          ) : (
+             <SlotRenderer slot={character.accessory} className={`w-44 h-80 ${BOLD_LINE} rounded-b-[45%] animate-pulse origin-top scale-x-110`} />
+          )}
         </div>
       )}
-      {character.accessory === 'cape' && (
-        <div className="absolute top-20 -z-10 w-24 h-40 bg-red-600 border-[6px] border-black rounded-b-xl animate-pulse" />
-      )}
 
-      {/* Head - Classic Flat Toon Style */}
-      <div 
-        className="w-24 h-24 border-[6px] border-black rounded-2xl relative z-20 overflow-visible"
-        style={{ backgroundColor: character.skinColor }}
-      >
-        {/* Hair Styles */}
-        {character.hairStyle === 'short' && (
-          <div className="absolute -top-2 -left-1 w-[105%] h-8 bg-black border-[5px] border-black rounded-t-xl z-30" />
-        )}
-        {character.hairStyle === 'pompadour' && (
-          <div className="absolute -top-12 -left-1 w-[110%] h-14 bg-black border-[5px] border-black rounded-t-[40px] z-30" />
-        )}
-        {character.hairStyle === 'long' && (
-          <div className="absolute -top-4 -left-4 w-[130%] h-24 bg-black border-[5px] border-black rounded-t-3xl -z-10" />
-        )}
-        {character.hairStyle === 'spiky' && (
-          <div className="absolute -top-8 left-0 flex gap-1 z-30">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="w-6 h-10 bg-black border-[5px] border-black" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-            ))}
-          </div>
-        )}
-        {character.hairStyle === 'pigtails' && (
-          <div className="absolute -top-2 left-0 w-full flex justify-between z-30">
-             <div className="w-10 h-10 bg-black border-[5px] border-black rounded-full -translate-x-6" />
-             <div className="w-10 h-10 bg-black border-[5px] border-black rounded-full translate-x-6" />
-          </div>
-        )}
-
-        {/* Headwear - Specific CN Styles */}
-        {character.headwear === 'genius_glasses' && (
-          <div className="absolute top-6 -left-2 w-[115%] h-12 flex gap-1 z-40">
-             <div className="w-1/2 h-full bg-cyan-100 border-[5px] border-black rounded-lg" />
-             <div className="w-1/2 h-full bg-cyan-100 border-[5px] border-black rounded-lg" />
-          </div>
-        )}
-        {character.headwear === 'pink_ribbon' && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-16 h-8 bg-pink-400 border-[5px] border-black rounded-full z-40 flex items-center justify-center">
-             <div className="w-4 h-4 bg-pink-600 rounded-full" />
-          </div>
-        )}
-        {character.headwear === 'bravo_shades' && (
-          <div className="absolute top-8 -left-2 w-[115%] h-6 bg-black border-[2px] border-gray-600 z-50 rounded-full" />
-        )}
-        {character.headwear === 'wizard' && (
-          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-20 h-24 bg-indigo-600 border-[5px] border-black z-40" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-        )}
-
-        {/* Eyes (if not covered by glasses) */}
-        {(!['genius_glasses', 'bravo_shades'].includes(character.headwear)) && (
-          <>
-            <div className="absolute top-8 left-3 w-7 h-8 bg-white border-[4px] border-black rounded-full overflow-hidden">
-              <div className="absolute top-2 left-1 w-3 h-3 bg-black rounded-full" />
-            </div>
-            <div className="absolute top-8 right-3 w-7 h-8 bg-white border-[4px] border-black rounded-full overflow-hidden">
-              <div className="absolute top-2 right-1 w-3 h-3 bg-black rounded-full" />
-            </div>
-          </>
-        )}
+      {/* Human-Proportioned Head - Reduced relative size (approx 1/4 to 1/5 of height) */}
+      <SlotRenderer slot={character.head} className={`w-28 h-32 ${BOLD_LINE} rounded-[3rem] relative z-20 overflow-visible shadow-lg`}>
         
-        {/* Mouth */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-6 h-1 bg-black rounded-full" />
+        {/* Dynamic Hair Volume Silhouette */}
+        {character.hairStyle !== 'none' && (
+          <SlotRenderer 
+            slot={character.hair} 
+            className={`absolute -inset-3 -top-5 ${MEDIUM_LINE} rounded-t-[4rem] -z-10`} 
+            style={{ 
+              height: `${22 * hairVol}px`,
+              transform: `translateY(${(1 - hairVol) * 10}px) scaleX(${Math.min(hairVol, 1.4)})`,
+              transformOrigin: 'bottom center'
+            }}
+          />
+        )}
+
+        {/* 'Powerpuff' Expressive Eyes - Slightly smaller for humanoid scale */}
+        <div className="absolute top-8 left-0 right-0 flex justify-center gap-1 px-0.5">
+          <div className={`w-11 h-13 bg-white ${MEDIUM_LINE} rounded-full relative overflow-hidden`}>
+            <SlotRenderer slot={character.eyes} className="absolute top-2 left-2 w-6 h-8 rounded-full">
+              <div className="absolute top-0.5 left-0.5 w-2 h-2 bg-white rounded-full opacity-90" />
+            </SlotRenderer>
+          </div>
+          <div className={`w-11 h-13 bg-white ${MEDIUM_LINE} rounded-full relative overflow-hidden`}>
+            <SlotRenderer slot={character.eyes} className="absolute top-2 right-2 w-6 h-8 rounded-full">
+              <div className="absolute top-0.5 right-0.5 w-2 h-2 bg-white rounded-full opacity-90" />
+            </SlotRenderer>
+          </div>
+        </div>
+
+        {/* Mouth - Stylized humanoid ink stroke */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-8 h-2 bg-black rounded-full opacity-80" />
+
+        {/* Bangs / Hair Detail */}
+        {character.hairStyle === 'spiky' && (
+          <div className="absolute -top-10 left-0 right-0 flex justify-center gap-1" style={{ transform: `scale(${hairVol})`, transformOrigin: 'bottom center' }}>
+             <SlotRenderer slot={character.hair} className="w-6 h-12 border-[5px] border-black rotate-[-20deg] rounded-full" />
+             <SlotRenderer slot={character.hair} className="w-6 h-14 border-[5px] border-black rounded-full" />
+             <SlotRenderer slot={character.hair} className="w-6 h-12 border-[5px] border-black rotate-[20deg] rounded-full" />
+          </div>
+        )}
+
+        {/* Headwear */}
+        {character.headwear.id !== 'none' && (
+          <SlotRenderer slot={character.headwear} className={`absolute -top-14 left-1/2 -translate-x-1/2 w-24 h-16 ${MEDIUM_LINE} z-40 rounded-t-[1.5rem]`} />
+        )}
+      </SlotRenderer>
+
+      {/* Humanoid Neck */}
+      <div className="relative z-10 -mt-1">
+        <SlotRenderer slot={character.head} className="w-8 h-8 border-x-[8px] border-black mx-auto" />
+        {character.jewelry.id !== 'none' && (
+          <SlotRenderer slot={character.jewelry} className={`absolute top-0 left-1/2 -translate-x-1/2 w-20 h-6 ${MEDIUM_LINE} rounded-full`} />
+        )}
       </div>
 
-      {/* Jewelry */}
-      {character.jewelry === 'gold_chain' && (
-        <div className="absolute top-24 w-16 h-8 border-b-[8px] border-yellow-500 rounded-full z-40" />
-      )}
+      {/* Body & Humanoid Limbs */}
+      <div className="relative flex items-start -mt-2">
+        {/* Left Arm - Lengthened for humanoid proportion */}
+        <SlotRenderer slot={character.arms} className={`w-8 h-40 ${MEDIUM_LINE} rounded-full -rotate-[20deg] origin-top translate-y-4 -mr-4`} />
 
-      {/* Body & Props */}
-      <div className="relative flex items-center">
-        {/* Left Hand Prop */}
-        <div className="w-5 h-12 border-[5px] border-black rotate-[-45deg] origin-top translate-y-4" style={{ backgroundColor: character.skinColor }}>
-          {character.handItem === 'mallet' && <div className="absolute bottom-0 w-8 h-24 bg-orange-900 border-[5px] border-black -translate-x-1 translate-y-24 rotate-[45deg] flex items-end justify-center"><div className="w-20 h-16 bg-gray-400 border-[5px] border-black rounded-lg" /></div>}
-          {character.handItem === 'microphone' && <div className="absolute bottom-0 w-6 h-12 bg-black border-[5px] border-black translate-y-12 rotate-[45deg]"><div className="w-10 h-10 bg-gray-300 border-[4px] border-black rounded-full -translate-x-2 -translate-y-4" /></div>}
+        {/* Humanoid Torso - Significantly taller than the head */}
+        <div className="relative z-10">
+          <SlotRenderer 
+            slot={character.torso} 
+            className={`${bodyConfig.width} ${bodyConfig.height} ${BOLD_LINE} ${getTorsoRadius(bodyConfig.id)} relative overflow-visible`}
+          >
+             {/* Clothing Layers */}
+             <SlotRenderer slot={character.outfit} className="absolute inset-x-0 bottom-0 h-[75%] border-t-[8px] border-black/20 opacity-95" />
+          </SlotRenderer>
         </div>
 
-        {/* Torso */}
-        <div 
-          className={`${bodyConfig.width} ${bodyConfig.height} border-[6px] border-black -mt-4 z-10 relative overflow-hidden`}
-          style={{ backgroundColor: character.outfit }}
-        >
-          {/* Outfit Decorations (Stripes, Logos) */}
-          {character.outfit === '#FFD700' && <div className="absolute inset-x-0 top-1/2 h-4 bg-red-600 border-y-[2px] border-black" />}
-          {character.outfit === '#FFFFFF' && <div className="absolute right-2 top-4 w-4 h-6 bg-black/10 rounded" />}
-        </div>
-
-        {/* Right Hand Prop */}
-        <div className="w-5 h-12 border-[5px] border-black rotate-[45deg] origin-top translate-y-4" style={{ backgroundColor: character.skinColor }}>
-          {character.handItem === 'phone' && <div className="absolute bottom-0 w-10 h-14 bg-pink-500 border-[5px] border-black translate-y-14" />}
-          {character.handItem === 'anvil' && <div className="absolute bottom-0 w-20 h-16 bg-gray-700 border-[5px] border-black rounded-t-xl translate-y-16" />}
-        </div>
+        {/* Right Arm & Hand Prop */}
+        <SlotRenderer slot={character.arms} className={`w-8 h-40 ${MEDIUM_LINE} rounded-full rotate-[20deg] origin-top translate-y-4 -ml-4 flex flex-col items-center`}>
+           {character.handItem.id !== 'none' && (
+             <SlotRenderer slot={character.handItem} className={`w-20 h-24 ${BOLD_LINE} rounded-2xl -mt-4 translate-y-36 rotate-[-5deg] shadow-xl flex items-center justify-center font-brand text-[10px] text-white`}>
+                <div className="bg-black/20 w-full h-full flex items-center justify-center uppercase">
+                  {character.handItem.id.slice(0, 3)}
+                </div>
+             </SlotRenderer>
+           )}
+        </SlotRenderer>
       </div>
 
-      {/* Legs & Shoes */}
-      <div className="flex gap-4 -mt-2">
-        <div className="w-8 h-12 border-[6px] border-black relative overflow-hidden" style={{ backgroundColor: character.skinColor }}>
-          <div className="absolute bottom-0 w-full h-5 border-t-[4px] border-black" style={{ backgroundColor: character.footwear !== 'transparent' ? character.footwear : '#111' }} />
+      {/* Lengthened Legs & Shoes */}
+      <div className="flex gap-14 -mt-6 relative z-0">
+        <div className="relative">
+          <SlotRenderer slot={character.legs} className={`w-12 h-44 ${MEDIUM_LINE} rounded-b-xl`}>
+            {/* Realistic humanoid leg proportions */}
+            <SlotRenderer slot={character.footwear} className={`absolute bottom-0 inset-x-0 h-14 border-t-[8px] border-black rounded-b-lg`} />
+          </SlotRenderer>
         </div>
-        <div className="w-8 h-12 border-[6px] border-black relative overflow-hidden" style={{ backgroundColor: character.skinColor }}>
-           <div className="absolute bottom-0 w-full h-5 border-t-[4px] border-black" style={{ backgroundColor: character.footwear !== 'transparent' ? character.footwear : '#111' }} />
+        <div className="relative">
+          <SlotRenderer slot={character.legs} className={`w-12 h-44 ${MEDIUM_LINE} rounded-b-xl`}>
+            <SlotRenderer slot={character.footwear} className={`absolute bottom-0 inset-x-0 h-14 border-t-[8px] border-black rounded-b-lg`} />
+          </SlotRenderer>
         </div>
       </div>
     </div>

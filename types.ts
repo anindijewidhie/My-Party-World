@@ -4,6 +4,7 @@ export enum View {
   DASHBOARD = 'DASHBOARD',
   CUSTOMIZE = 'CUSTOMIZE',
   CHARACTER_GALLERY = 'CHARACTER_GALLERY',
+  COMMUNITY_GALLERY = 'COMMUNITY_GALLERY',
   PARTY = 'PARTY',
   WALLET = 'WALLET',
   BANK_SETUP = 'BANK_SETUP',
@@ -21,19 +22,37 @@ export interface User {
   parentalControlActive: boolean;
 }
 
+export interface AppearanceSlot {
+  id: string;
+  color: string;
+  material: string;
+  texture: string;
+}
+
 export interface Character {
   id: string;
   name: string;
   ageRange: string;
   bodyType: string;
-  outfit: string; // Tops/Bottoms/Full Costumes
-  skinColor: string;
+  ownerId?: string;
+  ownerName?: string;
+  isCommunity?: boolean;
+  // Body Parts (Individual Customization)
+  head: AppearanceSlot;
+  torso: AppearanceSlot;
+  arms: AppearanceSlot;
+  legs: AppearanceSlot;
+  eyes: AppearanceSlot;
+  // Clothing & Props
+  outfit: AppearanceSlot;
+  headwear: AppearanceSlot;
+  footwear: AppearanceSlot;
+  jewelry: AppearanceSlot;
+  accessory: AppearanceSlot;
+  handItem: AppearanceSlot;
+  hair: AppearanceSlot;
   hairStyle: string;
-  headwear: string;
-  footwear: string;
-  jewelry: string;
-  accessory: string; // Backpacks, wings, etc.
-  handItem: string;
+  hairVolume: number;
 }
 
 export interface WalletState {
@@ -61,6 +80,7 @@ export interface CustomItem {
   name: string;
   type: string;
   color: string;
+  material: string;
   texture: string;
   description: string;
 }

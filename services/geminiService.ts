@@ -1,27 +1,34 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use process.env.API_KEY directly as per guidelines
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateCustomItem = async (prompt: string) => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Generate a unique party hosting item or outfit based on this user idea: "${prompt}". 
-    CRITICAL STYLE GUIDE: The item must strictly fit a 1990s-2000s Cartoon Network aesthetic. 
-    Think thick black outlines, bold saturated colors, slightly surrealist shapes, and quirky designs similar to 'Dexter's Lab', 'Powerpuff Girls', or 'Johnny Bravo'. 
-    No generic 3D or modern minimalist styles. High contrast and retro-toon feel.`,
+    contents: `Generate a unique character part or outfit component based on this idea: "${prompt}". 
+    
+    AESTHETIC REQUIREMENTS:
+    - Style: 2000s Cartoon Network Era (Dexter's Lab, Powerpuff Girls, Samurai Jack, Codename: Kids Next Door).
+    - Visuals: Bold black 8px ink outlines, highly geometric shapes, flat but high-saturation colors.
+    - Result: Must feel like a high-quality hand-drawn asset from a classic 2000s cartoon.
+    
+    TECHNICAL OUTPUT:
+    Return a material type and a texture pattern name. 
+    Materials: matte, glossy, metallic, holographic, fuzzy, liquid.
+    Textures: none, dots, stripes, grid, glitch.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
           name: { type: Type.STRING },
-          type: { type: Type.STRING },
-          color: { type: Type.STRING, description: "Hex code" },
+          type: { type: Type.STRING, description: "Category like 'outfit', 'headwear', 'jewelry', 'accessory', 'handItem', 'hair', 'head', 'torso', 'arms', 'legs', 'eyes'." },
+          color: { type: Type.STRING, description: "High-contrast Hex code (e.g., #FF00FF, #00FFFF, #8B008B)." },
+          material: { type: Type.STRING },
           texture: { type: Type.STRING },
           description: { type: Type.STRING },
         },
-        required: ["name", "type", "color", "texture", "description"]
+        required: ["name", "type", "color", "material", "texture", "description"]
       }
     }
   });
@@ -32,9 +39,7 @@ export const generateCustomItem = async (prompt: string) => {
 export const getPartyEvent = async (theme: string) => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `The user is hosting a "${theme}" party in a 1990s/2000s Cartoon Network world. 
-    Suggest a random funny event that happens during the party that feels like a scene from a classic CN show (slapstick humor, surreal dialogue, or wacky inventions). 
-    Determine how it affects the 'vibe' score (from -20 to +20).`,
+    contents: `Suggest a random funny Cartoon Network style event (2000s vibe) for a "${theme}" party. The event should feel like a plot point from a classic episode.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
