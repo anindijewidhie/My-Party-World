@@ -2,28 +2,29 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const generateCustomItem = async (prompt: string) => {
+export const generateCustomItem = async (prompt: string, category: string) => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Generate a unique character part or outfit component based on this idea: "${prompt}". 
+    contents: `Generate a stylish, modern character clothing item or accessory for the slot "${category}" based on: "${prompt}". 
     
     AESTHETIC REQUIREMENTS:
-    - Style: 2000s Cartoon Network Era (Dexter's Lab, Powerpuff Girls, Samurai Jack, Codename: Kids Next Door).
-    - Visuals: Bold black 8px ink outlines, highly geometric shapes, flat but high-saturation colors.
-    - Result: Must feel like a high-quality hand-drawn asset from a classic 2000s cartoon.
+    - Style: High-end streetwear, modern minimalist, or realistic casual wear.
+    - Shapes: Natural draping, realistic stitching details, human-fit silhouettes.
+    - Colors: Sophisticated palettes (e.g., Charcoal, Sage, Terracotta, Navy, Cream).
+    - Details: Subtle textures like denim, silk, matte leather, or fine knit.
     
     TECHNICAL OUTPUT:
-    Return a material type and a texture pattern name. 
-    Materials: matte, glossy, metallic, holographic, fuzzy, liquid.
-    Textures: none, dots, stripes, grid, glitch.`,
+    Return a part type and visual properties.
+    Materials: matte, hatch, metallic, plastic, gel.
+    Textures: none, dots, circuit, hazmat.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
           name: { type: Type.STRING },
-          type: { type: Type.STRING, description: "Category like 'outfit', 'headwear', 'jewelry', 'accessory', 'handItem', 'hair', 'head', 'torso', 'arms', 'legs', 'eyes'." },
-          color: { type: Type.STRING, description: "High-contrast Hex code (e.g., #FF00FF, #00FFFF, #8B008B)." },
+          type: { type: Type.STRING, description: `Must be exactly "${category}".` },
+          color: { type: Type.STRING, description: "Sophisticated Hex code." },
           material: { type: Type.STRING },
           texture: { type: Type.STRING },
           description: { type: Type.STRING },
@@ -36,17 +37,66 @@ export const generateCustomItem = async (prompt: string) => {
   return JSON.parse(response.text);
 };
 
+export const generateHairTexture = async (prompt: string) => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Generate a custom CSS background-image pattern for a realistic human hairstyle. 
+    Theme: Modern fashion, highlights, ombre effects, or natural hair grain.
+    User Prompt: "${prompt}".
+    
+    Return a valid CSS 'background-image' property value and a 'background-size' value.
+    Use subtle gradients or micro-patterns that add depth and realism.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          pattern: { type: Type.STRING, description: "A valid CSS background-image string." },
+          size: { type: Type.STRING, description: "A valid CSS background-size string (e.g., '10px 10px')." },
+          name: { type: Type.STRING },
+        },
+        required: ["pattern", "size", "name"]
+      }
+    }
+  });
+
+  return JSON.parse(response.text);
+};
+
+export const synthesizeEnvironment = async (prompt: string) => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Synthesize a realistic modern party environment atmosphere for: "${prompt}". 
+    The style should be high-end architecture and contemporary interior design. 
+    Output should include elegant decor descriptions and a professional lighting scheme.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          decor: { type: Type.STRING },
+          lighting: { type: Type.STRING },
+          music: { type: Type.STRING },
+          effect: { type: Type.STRING, description: "A subtle atmospheric effect (e.g. Golden Hour, Warm Breeze)" }
+        },
+        required: ["decor", "lighting", "music", "effect"]
+      }
+    }
+  });
+  return JSON.parse(response.text);
+};
+
 export const getPartyEvent = async (theme: string) => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Suggest a random funny Cartoon Network style event (2000s vibe) for a "${theme}" party. The event should feel like a plot point from a classic episode.`,
+    contents: `Suggest a random realistic social interaction or event occurring during a "${theme}" social gathering. Examples: A famous guest arrives, a surprise toast, a spontaneous dance-off, or a professional networking breakthrough.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
           event: { type: Type.STRING },
-          vibeImpact: { type: Type.NUMBER },
+          vibeImpact: { type: Type.NUMBER, description: "Impact between -20 and 50" },
           buttonText: { type: Type.STRING }
         },
         required: ["event", "vibeImpact", "buttonText"]

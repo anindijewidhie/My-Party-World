@@ -1,16 +1,14 @@
+
 export enum View {
   LANDING = 'LANDING',
   AUTH = 'AUTH',
   DASHBOARD = 'DASHBOARD',
   CUSTOMIZE = 'CUSTOMIZE',
-  CHARACTER_GALLERY = 'CHARACTER_GALLERY',
-  COMMUNITY_GALLERY = 'COMMUNITY_GALLERY',
   PARTY = 'PARTY',
   WALLET = 'WALLET',
-  BANK_SETUP = 'BANK_SETUP',
   LOCATION_PICKER = 'LOCATION_PICKER',
-  CAPTURE = 'CAPTURE',
-  DONATE = 'DONATE'
+  DONATE = 'DONATE',
+  SIM_CONFIG = 'SIM_CONFIG'
 }
 
 export interface User {
@@ -27,6 +25,7 @@ export interface AppearanceSlot {
   color: string;
   material: string;
   texture: string;
+  textureSize?: string;
 }
 
 export interface Character {
@@ -34,16 +33,14 @@ export interface Character {
   name: string;
   ageRange: string;
   bodyType: string;
-  ownerId?: string;
-  ownerName?: string;
-  isCommunity?: boolean;
-  // Body Parts (Individual Customization)
+  headShape: string;
   head: AppearanceSlot;
   torso: AppearanceSlot;
   arms: AppearanceSlot;
   legs: AppearanceSlot;
   eyes: AppearanceSlot;
-  // Clothing & Props
+  nose: AppearanceSlot;
+  mouth: AppearanceSlot;
   outfit: AppearanceSlot;
   headwear: AppearanceSlot;
   footwear: AppearanceSlot;
@@ -53,6 +50,8 @@ export interface Character {
   hair: AppearanceSlot;
   hairStyle: string;
   hairVolume: number;
+  hairShape: string;
+  hairWarp: number;
 }
 
 export interface WalletState {
@@ -63,24 +62,29 @@ export interface WalletState {
   autoWithdraw: boolean;
 }
 
+export interface PartyEnvironment {
+  music: string;
+  lighting: string;
+  decor: string;
+  specialEffect: string;
+}
+
 export interface PartySession {
   theme: string;
   location: string;
-  vibe: number; // 0-100
+  vibe: number;
   startTime: number;
-  streamStartTime?: number;
-  earned: number;
+  earnedInSession: number;
   guests: number;
   isStreaming: boolean;
   characterId: string;
+  activeEvents: PartyEvent[];
+  env: PartyEnvironment;
 }
 
-export interface CustomItem {
+export interface PartyEvent {
   id: string;
-  name: string;
-  type: string;
-  color: string;
-  material: string;
-  texture: string;
-  description: string;
+  text: string;
+  impact: number;
+  type: 'bonus' | 'hazard' | 'neutral';
 }

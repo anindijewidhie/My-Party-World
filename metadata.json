@@ -1,6 +1,6 @@
 {
   "name": "My Party World",
-  "description": "A high-energy party hosting simulation with a Cartoon Network aesthetic, featuring deep customization and a simulated earning system.",
+  "description": "The ultimate party hosting simulation game. Available on Web, Android, iOS, and HarmonyOS. Earn $5 every 10 minutes of gameplay.",
   "requestFramePermissions": [
     "camera",
     "microphone"
